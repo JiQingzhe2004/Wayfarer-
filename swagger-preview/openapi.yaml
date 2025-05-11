@@ -1,0 +1,1058 @@
+openapi: 3.0.3
+info:
+  title: 我爱旅行 API
+  description: 为旅行指南iOS应用程序提供的API，支持分享、使用和管理旅行攻略，以及基于位置的提醒功能。
+  version: 1.0.0
+  contact:
+    email: jin648862@gmail.com
+servers:
+  - url: https://api.wayfarer.aiqji.cn/v1
+    description: 生产服务器
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [error]
+        data:
+          type: object
+          nullable: true
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - status
+        - message
+        - timestamp
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        email:
+          type: string
+          format: email
+          description: 邮箱
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+          description: 头像URL
+        bio:
+          type: string
+          nullable: true
+          description: 个人简介
+        phone:
+          type: string
+          nullable: true
+          description: 手机号
+        gender:
+          type: string
+          enum: [male, female, other, unknown]
+          nullable: true
+          description: 性别
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+          description: 最后登录时间
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+      required:
+        - user_id
+        - username
+        - email
+        - created_at
+    LoginResponse:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        token:
+          type: string
+          description: JWT令牌
+      required:
+        - user_id
+        - username
+        - token
+    Guide:
+      type: object
+      properties:
+        guide_id:
+          type: integer
+          description: 攻略ID
+        title:
+          type: string
+          description: 攻略标题
+        content:
+          type: string
+          description: 攻略内容
+        city:
+          type: string
+          description: 城市
+        attractions:
+          type: array
+          description: 景点列表
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: 景点名称
+              coordinates:
+                type: object
+                description: 坐标
+                properties:
+                  lat:
+                    type: number
+                    format: float
+                    description: 纬度
+                  lng:
+                    type: number
+                    format: float
+                    description: 经度
+                required:
+                  - lat
+                  - lng
+            required:
+              - name
+              - coordinates
+        tags:
+          type: array
+          description: 标签
+          items:
+            type: string
+        usage_count:
+          type: integer
+          description: 使用次数
+        author:
+          type: object
+          description: 作者
+          properties:
+            user_id:
+              type: integer
+              description: 作者ID
+            username:
+              type: string
+              description: 作者用户名
+          required:
+            - user_id
+            - username
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+      required:
+        - guide_id
+        - title
+        - city
+        - usage_count
+        - author
+        - created_at
+    GuideList:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: 总记录数
+        page:
+          type: integer
+          description: 当前页码
+        limit:
+          type: integer
+          description: 每页数量
+        guides:
+          type: array
+          description: 攻略列表
+          items:
+            $ref: '#/components/schemas/Guide'
+      required:
+        - total
+        - page
+        - limit
+        - guides
+    UserGuide:
+      type: object
+      properties:
+        guide_id:
+          type: integer
+          description: 攻略ID
+        title:
+          type: string
+          description: 攻略标题
+        city:
+          type: string
+          description: 城市
+        status:
+          type: string
+          enum: [pending, ongoing, completed]
+          description: 状态（待开始、进行中、已完成）
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+      required:
+        - guide_id
+        - title
+        - city
+        - status
+        - created_at
+    UserGuideList:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: 总记录数
+        page:
+          type: integer
+          description: 当前页码
+        limit:
+          type: integer
+          description: 每页数量
+        guides:
+          type: array
+          description: 用户攻略列表
+          items:
+            $ref: '#/components/schemas/UserGuide'
+      required:
+        - total
+        - page
+        - limit
+        - guides
+    ImageUploadResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: 图片URL
+      required:
+        - url
+    LocationResponse:
+      type: object
+      properties:
+        matched_guides:
+          type: array
+          description: 匹配的攻略
+          items:
+            type: object
+            properties:
+              guide_id:
+                type: integer
+                description: 攻略ID
+              city:
+                type: string
+                description: 城市
+            required:
+              - guide_id
+              - city
+      required:
+        - matched_guides
+
+paths:
+  /users/register:
+    post:
+      summary: 注册新用户
+      description: 创建一个新的用户账户。
+      tags:
+        - 用户管理
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  minLength: 4
+                  maxLength: 20
+                  description: 用户名，4-20个字符
+                email:
+                  type: string
+                  format: email
+                  description: 邮箱
+                password:
+                  type: string
+                  minLength: 6
+                  maxLength: 20
+                  description: 密码，6-20个字符
+              required:
+                - username
+                - email
+                - password
+      responses:
+        '200':
+          description: 用户注册成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    $ref: '#/components/schemas/User'
+                    description: 用户信息
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '400':
+          description: 输入无效或邮箱已存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users/login:
+    post:
+      summary: 用户登录
+      description: 用户登录并获取JWT令牌。
+      tags:
+        - 用户管理
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: 邮箱
+                password:
+                  type: string
+                  description: 密码
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    $ref: '#/components/schemas/LoginResponse'
+                    description: 登录信息
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '401':
+          description: 邮箱或密码错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users/me:
+    get:
+      summary: 获取当前用户信息
+      description: 获取已登录用户的详细信息。
+      tags:
+        - 用户管理
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 用户信息获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    $ref: '#/components/schemas/User'
+                    description: 用户信息
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /guides:
+    get:
+      summary: 获取攻略列表
+      description: 获取旅行攻略列表，支持分页、筛选和排序。
+      tags:
+        - 攻略管理
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: 页码
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: 每页数量
+        - name: city
+          in: query
+          schema:
+            type: string
+          description: 城市名称
+        - name: tags
+          in: query
+          schema:
+            type: string
+            example: "美食,文化"
+          description: 标签，逗号分隔
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [usage_count_desc, usage_count_asc, created_at_desc]
+            default: usage_count_desc
+          description: 排序方式
+      responses:
+        '200':
+          description: 攻略列表获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    $ref: '#/components/schemas/GuideList'
+                    description: 攻略列表
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '400':
+          description: 查询参数无效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: 创建新攻略
+      description: 用户发布新的旅行攻略。
+      tags:
+        - 攻略管理
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 5
+                  maxLength: 100
+                  description: 攻略标题
+                content:
+                  type: string
+                  description: 攻略内容
+                city:
+                  type: string
+                  description: 城市
+                attractions:
+                  type: array
+                  description: 景点列表
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: 景点名称
+                      coordinates:
+                        type: object
+                        description: 坐标
+                        properties:
+                          lat:
+                            type: number
+                            format: float
+                            description: 纬度
+                          lng:
+                            type: number
+                            format: float
+                            description: 经度
+                        required:
+                          - lat
+                          - lng
+                    required:
+                      - name
+                      - coordinates
+                tags:
+                  type: array
+                  description: 标签
+                  items:
+                    type: string
+                images:
+                  type: array
+                  description: 图片URL
+                  items:
+                    type: string
+                    format: uri
+              required:
+                - title
+                - content
+                - city
+      responses:
+        '201':
+          description: 攻略创建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    type: object
+                    properties:
+                      guide_id:
+                        type: integer
+                        description: 攻略ID
+                      title:
+                        type: string
+                        description: 攻略标题
+                      city:
+                        type: string
+                        description: 城市
+                      created_at:
+                        type: string
+                        format: date-time
+                        description: 创建时间
+                    required:
+                      - guide_id
+                      - title
+                      - city
+                      - created_at
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '400':
+          description: 输入无效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /guides/{id}:
+    get:
+      summary: 获取攻略详情
+      description: 获取指定攻略的详细信息。
+      tags:
+        - 攻略管理
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 攻略ID
+      responses:
+        '200':
+          description: 攻略详情获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    $ref: '#/components/schemas/Guide'
+                    description: 攻略信息
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '404':
+          description: 攻略不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /guides/{id}/use:
+    post:
+      summary: 使用攻略
+      description: 用户选择使用某攻略，并添加到“我的旅游”。
+      tags:
+        - 攻略管理
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 攻略ID
+      responses:
+        '200':
+          description: 攻略使用成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    type: object
+                    properties:
+                      guide_id:
+                        type: integer
+                        description: 攻略ID
+                      usage_count:
+                        type: integer
+                        description: 当前使用次数
+                    required:
+                      - guide_id
+                      - usage_count
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 攻略不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /user/guides:
+    get:
+      summary: 获取用户攻略
+      description: 获取用户已选择的攻略列表。
+      tags:
+        - 我的旅游
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, ongoing, completed]
+          description: 攻略状态
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: 页码
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: 每页数量
+      responses:
+        '200':
+          description: 用户攻略获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    $ref: '#/components/schemas/UserGuideList'
+                    description: 用户攻略列表
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /user/guides/{id}/start:
+    post:
+      summary: 开始旅行
+      description: 用户确认开始某攻略的旅行。
+      tags:
+        - 我的旅游
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 攻略ID
+      responses:
+        '200':
+          description: 旅行开始成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    type: object
+                    properties:
+                      guide_id:
+                        type: integer
+                        description: 攻略ID
+                      status:
+                        type: string
+                        enum: [ongoing]
+                        description: 攻略状态
+                    required:
+                      - guide_id
+                      - status
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 攻略不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /user/guides/{id}/complete:
+    post:
+      summary: 完成旅行
+      description: 用户标记某攻略的旅行已完成。
+      tags:
+        - 我的旅游
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 攻略ID
+      responses:
+        '200':
+          description: 旅行完成成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    type: object
+                    properties:
+                      guide_id:
+                        type: integer
+                        description: 攻略ID
+                      status:
+                        type: string
+                        enum: [completed]
+                        description: 攻略状态
+                    required:
+                      - guide_id
+                      - status
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 攻略不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /upload/images:
+    post:
+      summary: 上传图片
+      description: 上传攻略中的图片至服务器。
+      tags:
+        - 文件上传
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: 图片文件
+              required:
+                - image
+      responses:
+        '200':
+          description: 图片上传成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    $ref: '#/components/schemas/ImageUploadResponse'
+                    description: 图片信息
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '400':
+          description: 文件格式无效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /user/location:
+    post:
+      summary: 更新用户位置
+      description: 更新用户当前位置，检测是否触发攻略提醒。
+      tags:
+        - 位置提醒
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                  format: float
+                  description: 纬度
+                longitude:
+                  type: number
+                  format: float
+                  description: 经度
+              required:
+                - latitude
+                - longitude
+      responses:
+        '200':
+          description: 位置更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                    description: 状态
+                  data:
+                    $ref: '#/components/schemas/LocationResponse'
+                    description: 匹配的攻略
+                  message:
+                    type: string
+                    description: 提示信息
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 时间戳
+                required:
+                  - status
+                  - data
+                  - message
+                  - timestamp
+        '400':
+          description: 无效的坐标
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+security:
+  - BearerAuth: []
