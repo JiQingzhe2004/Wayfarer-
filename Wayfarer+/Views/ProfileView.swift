@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @State private var selectedTab = 0
+    @State private var showSettings = false
     let tabs = ["我的攻略", "收藏", "旅行记录"]
     
     // 模拟用户数据
@@ -141,6 +142,7 @@ struct ProfileView: View {
                     // 设置按钮
                     Button(action: {
                         // 跳转到设置页面
+                        showSettings = true
                     }) {
                         Text("设置")
                             .font(.headline)
@@ -158,6 +160,10 @@ struct ProfileView: View {
             .edgesIgnoringSafeArea(.top)
             .navigationBarHidden(true)
         }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+        }
+        .background(AppColors.background.edgesIgnoringSafeArea(.all))
     }
 }
 

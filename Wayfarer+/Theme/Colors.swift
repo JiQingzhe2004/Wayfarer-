@@ -9,12 +9,26 @@ import SwiftUI
 
 struct AppColors {
     // 主色
-    static let primary = Color(hex: "007AFF") // iOS系统蓝，代表探索与信任
+    static var primary: Color {
+        ColorSchemeManager.shared.colorScheme == .dark ? Color(hex: "0A84FF") : Color(hex: "007AFF")
+    }
     
     // 辅助色
-    static let background = Color.white
-    static let secondaryText = Color(hex: "8E8E93") // 次要文字
-    static let accent = Color(hex: "FF9500") // 强调按钮如"使用该方案"
+    static var background: Color {
+        ColorSchemeManager.shared.colorScheme == .dark ? Color(hex: "1C1C1E") : Color.white
+    }
+    static var secondaryBackground: Color {
+        ColorSchemeManager.shared.colorScheme == .dark ? Color(hex: "2C2C2E") : Color(hex: "F2F2F7")
+    }
+    static var text: Color {
+        ColorSchemeManager.shared.colorScheme == .dark ? Color.white : Color.black
+    }
+    static var secondaryText: Color {
+        ColorSchemeManager.shared.colorScheme == .dark ? Color(hex: "EBEBF5").opacity(0.6) : Color(hex: "8E8E93")
+    }
+    static var accent: Color {
+        ColorSchemeManager.shared.colorScheme == .dark ? Color(hex: "FF9F0A") : Color(hex: "FF9500")
+    }
 }
 
 // 扩展Color以支持十六进制颜色初始化

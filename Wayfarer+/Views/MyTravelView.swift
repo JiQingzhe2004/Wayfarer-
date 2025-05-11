@@ -14,6 +14,8 @@ struct MyTravelView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                // 设置背景色
+                Color.clear.background(AppColors.background).edgesIgnoringSafeArea(.all)
                 // 顶部标签切换
                 HStack(spacing: 0) {
                     ForEach(0..<tabs.count, id: \.self) { index in
@@ -24,15 +26,15 @@ struct MyTravelView: View {
                                 .font(.headline)
                                 .padding(.vertical, 12)
                                 .frame(maxWidth: .infinity)
-                                .background(selectedTab == index ? AppColors.primary : Color.white)
-                                .foregroundColor(selectedTab == index ? .white : .gray)
+                                .background(selectedTab == index ? AppColors.primary : AppColors.background)
+                                .foregroundColor(selectedTab == index ? .white : AppColors.secondaryText)
                         }
                     }
                 }
-                .background(Color.white)
+                .background(AppColors.background)
                 .cornerRadius(8)
                 .padding()
-                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                .shadow(color: ColorSchemeManager.shared.colorScheme == .dark ? Color.black.opacity(0.3) : Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                 
                 // 旅行列表
                 ScrollView {
@@ -46,6 +48,7 @@ struct MyTravelView: View {
             }
             .navigationTitle("我的旅游")
             .navigationBarTitleDisplayMode(.inline)
+            .background(AppColors.background.edgesIgnoringSafeArea(.all))
         }
     }
     
@@ -118,9 +121,9 @@ struct TravelCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding()
-        .background(Color.white)
+        .background(AppColors.background)
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
+        .shadow(color: ColorSchemeManager.shared.colorScheme == .dark ? Color.black.opacity(0.2) : Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
     }
     
     private func statusColor(_ status: String) -> Color {
