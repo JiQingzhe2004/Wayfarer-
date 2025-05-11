@@ -70,7 +70,7 @@ struct PublishGuideView: View {
                         .frame(minHeight: 200)
                         .overlay(
                             Text(content.isEmpty ? "描述你的旅行体验、推荐景点和实用建议..." : "")
-                                .foregroundColor(.gray)
+                                .foregroundColor(AppColors.secondaryText)
                                 .padding(.horizontal, 4)
                                 .padding(.vertical, 8),
                             alignment: .topLeading
@@ -109,8 +109,9 @@ struct PublishGuideView: View {
                     
                     // 地图预览占位
                     ZStack {
-                        Color.gray.opacity(0.2)
+                        AppColors.secondaryBackground
                         Text("地图预览")
+                            .foregroundColor(AppColors.secondaryText)
                     }
                     .frame(height: 150)
                     .cornerRadius(8)
@@ -181,8 +182,8 @@ struct TagButton: View {
             Text(title)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(isSelected ? AppColors.primary : Color(.systemGray6))
-                .foregroundColor(isSelected ? .white : .primary)
+                .background(isSelected ? AppColors.primary : AppColors.secondaryBackground)
+                .foregroundColor(isSelected ? .white : AppColors.text)
                 .cornerRadius(16)
         }
     }
@@ -200,7 +201,7 @@ struct GuidePreviewView: View {
             VStack(alignment: .leading, spacing: 16) {
                 // 封面和标题
                 ZStack(alignment: .bottom) {
-                    Color.gray.opacity(0.3)
+                    AppColors.secondaryBackground
                         .frame(height: 200)
                     
                     VStack(alignment: .leading) {
@@ -215,7 +216,7 @@ struct GuidePreviewView: View {
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(LinearGradient(
-                        gradient: Gradient(colors: [.clear, .black.opacity(0.7)]),
+                        gradient: Gradient(colors: [.clear, ColorSchemeManager.shared.colorScheme == .dark ? Color.black.opacity(0.8) : Color.black.opacity(0.7)]),
                         startPoint: .top,
                         endPoint: .bottom
                     ))
@@ -234,7 +235,8 @@ struct GuidePreviewView: View {
                                     Text(tag)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
-                                        .background(Color(.systemGray6))
+                                        .background(AppColors.secondaryBackground)
+                                        .foregroundColor(AppColors.text)
                                         .cornerRadius(16)
                                 }
                             }

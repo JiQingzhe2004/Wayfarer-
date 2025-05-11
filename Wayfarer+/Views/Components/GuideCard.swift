@@ -23,25 +23,26 @@ struct GuideCard: View {
             // 标题
             Text("巴黎三日游攻略")
                 .font(.headline)
+                .foregroundColor(AppColors.text)
                 .lineLimit(1)
             // 底部信息
             HStack {
                 Text("旅行达人")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppColors.secondaryText)
                 Spacer()
                 Text("1234人使用")
                     .font(.subheadline)
                     .foregroundColor(AppColors.primary)
                 Text("巴黎")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppColors.secondaryText)
             }
         }
         .padding(.horizontal)
-        .background(Color.white)
+        .background(AppColors.background)
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
+        .shadow(color: ColorSchemeManager.shared.colorScheme == .dark ? Color.black.opacity(0.2) : Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
     }
 }
 
@@ -52,7 +53,7 @@ struct CategoryTab: View {
     var body: some View {
         Text(title)
             .fontWeight(isSelected ? .bold : .regular)
-            .foregroundColor(isSelected ? AppColors.primary : .gray)
+            .foregroundColor(isSelected ? AppColors.primary : AppColors.secondaryText)
             .padding(.bottom, 5)
             .overlay(
                 Rectangle()

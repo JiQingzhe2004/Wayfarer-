@@ -35,7 +35,7 @@ struct HomeView: View {
                         }
                     }
                     .padding(8)
-                    .background(Color(.systemGray6))
+                    .background(AppColors.secondaryBackground)
                     .cornerRadius(8)
                     
                     Button(action: {
@@ -148,7 +148,7 @@ struct FilterView: View {
                             .frame(maxWidth: .infinity)
                             .foregroundColor(AppColors.primary)
                             .padding()
-                            .background(Color.white)
+                            .background(AppColors.background)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(AppColors.primary, lineWidth: 1)
@@ -173,8 +173,8 @@ struct FilterChip: View {
             Text(title)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(isSelected ? AppColors.primary : Color(.systemGray6))
-                .foregroundColor(isSelected ? .white : .primary)
+                .background(isSelected ? AppColors.primary : AppColors.secondaryBackground)
+                .foregroundColor(isSelected ? .white : AppColors.text)
                 .cornerRadius(16)
         }
     }
@@ -300,8 +300,8 @@ struct GuideDetailView: View {
                         .foregroundColor(AppColors.primary)
                 }
                 .padding()
-                .background(Color.white)
-                .shadow(radius: 2)
+                .background(AppColors.background)
+                .shadow(color: ColorSchemeManager.shared.colorScheme == .dark ? Color.black.opacity(0.2) : Color.black.opacity(0.05), radius: 2)
             }
         )
         .navigationBarTitleDisplayMode(.inline)
